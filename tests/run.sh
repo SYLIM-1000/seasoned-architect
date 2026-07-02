@@ -134,6 +134,48 @@ test_git_hook_capture() {
   pass "git hook capture"
 }
 
+test_git_hook_core_hooks_path_capture() {
+  local tmp repo raw_log hook_path
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  git -C "$repo" config core.hooksPath .custom-hooks
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  hook_path="$repo/.custom-hooks/post-commit"
+  [[ -x "$hook_path" ]] || fail "core.hooksPath post-commit hook was not created"
+
+  echo "custom hooks" > "$repo/custom-hooks.txt"
+  git -C "$repo" add custom-hooks.txt
+  git -C "$repo" commit -q -m "capture custom hooks path"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$raw_log" ]] || fail "raw log missing with core.hooksPath"
+  grep -Fq '"message":"capture custom hooks path"' "$raw_log" || fail "core.hooksPath commit was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook core.hooksPath capture"
+}
+
+test_git_hook_space_path_capture() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo with spaces"
+  make_git_repo "$repo"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "spaces" > "$repo/spaces.txt"
+  git -C "$repo" add spaces.txt
+  git -C "$repo" commit -q -m "capture space path"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$raw_log" ]] || fail "raw log missing when repo path contains spaces"
+  grep -Fq '"message":"capture space path"' "$raw_log" || fail "space path commit was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook space path capture"
+}
+
 test_git_hook_install_idempotent() {
   local tmp repo hook_path original_hook block_count
   tmp="$(mktemp -d)"
@@ -249,6 +291,46 @@ HOOK
 
   rm -rf "$tmp"
   pass "git hook existing exit 0"
+}
+
+test_git_hook_capture_before_executable_original() {
+  local tmp repo raw_log order_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+repo_root="$(git rev-parse --show-toplevel)"
+common_dir="$(git -C "$repo_root" rev-parse --git-common-dir)"
+case "$common_dir" in
+  /*) common_dir_abs="$common_dir" ;;
+  *) common_dir_abs="$repo_root/$common_dir" ;;
+esac
+raw_log="$common_dir_abs/agent-docs/raw-log.jsonl"
+order_log="$repo_root/order.log"
+if [[ -f "$raw_log" ]]; then
+  echo "capture-before-original" >> "$order_log"
+else
+  echo "original-before-capture" >> "$order_log"
+fi
+HOOK
+  chmod +x "$repo/.git/hooks/post-commit"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "ordered" > "$repo/ordered.txt"
+  git -C "$repo" add ordered.txt
+  git -C "$repo" commit -q -m "capture before original"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  order_log="$repo/order.log"
+  [[ -f "$raw_log" ]] || fail "raw log missing for executable original order test"
+  [[ -f "$order_log" ]] || fail "existing executable hook did not write order log"
+  grep -Fxq "capture-before-original" "$order_log" || fail "capture did not run before executable original hook"
+  ! grep -Fxq "original-before-capture" "$order_log" || fail "original hook ran before capture"
+
+  rm -rf "$tmp"
+  pass "git hook capture before executable original"
 }
 
 test_git_hook_guard_clause_still_captures() {
@@ -406,10 +488,13 @@ main() {
   test_templates
   test_skills
   test_git_hook_capture
+  test_git_hook_core_hooks_path_capture
+  test_git_hook_space_path_capture
   test_git_hook_install_idempotent
   test_git_hook_symlink_refuses_install
   test_git_hook_non_executable_not_chained
   test_git_hook_existing_exit0_still_captures
+  test_git_hook_capture_before_executable_original
   test_git_hook_guard_clause_still_captures
   test_git_hook_relative_helper_still_runs
   test_git_hook_dollar_path_capture
