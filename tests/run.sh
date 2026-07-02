@@ -143,6 +143,65 @@ HOOK
   pass "git hook install idempotent"
 }
 
+test_git_hook_symlink_refuses_install() {
+  local tmp repo target hook_path output status
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  target="$repo/managed-post-commit"
+  cat > "$target" <<'HOOK'
+#!/usr/bin/env bash
+echo managed-hook > managed-hook-ran
+HOOK
+  chmod +x "$target"
+  ln -s "$target" "$repo/.git/hooks/post-commit"
+
+  set +e
+  output="$(cd "$repo" && "$ROOT/scripts/install-git-hook.sh" 2>&1)"
+  status="$?"
+  set -e
+
+  hook_path="$repo/.git/hooks/post-commit"
+  [[ "$status" != "0" ]] || fail "symlink hook install should fail"
+  [[ -L "$hook_path" ]] || fail "symlink hook was replaced"
+  [[ "$(readlink "$hook_path")" = "$target" ]] || fail "symlink target changed"
+  grep -Fq "post-commit hook is a symlink" <<<"$output" || fail "symlink refusal message missing"
+  grep -Fq "managed-hook" "$target" || fail "symlink target content changed"
+
+  rm -rf "$tmp"
+  pass "git hook symlink refusal"
+}
+
+test_git_hook_non_executable_not_chained() {
+  local tmp repo raw_log output hook_path
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+echo inactive-hook > inactive-hook-ran
+HOOK
+  chmod 0644 "$repo/.git/hooks/post-commit"
+
+  output="$(cd "$repo" && "$ROOT/scripts/install-git-hook.sh" 2>&1)"
+  echo "non executable" > "$repo/non-executable.txt"
+  git -C "$repo" add non-executable.txt
+  git -C "$repo" commit -q -m "capture without inactive hook"
+
+  hook_path="$repo/.git/hooks/post-commit"
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  grep -Fq "not executable; preserving but not chaining it" <<<"$output" || fail "non-executable hook message missing"
+  ls "$hook_path".bak.* >/dev/null 2>&1 || fail "non-executable hook backup was not created"
+  [[ -f "$raw_log" ]] || fail "raw log missing for non-executable hook"
+  grep -Fq '"message":"capture without inactive hook"' "$raw_log" || fail "non-executable hook commit was not captured"
+  [[ ! -f "$repo/inactive-hook-ran" ]] || fail "non-executable existing hook was chained"
+
+  rm -rf "$tmp"
+  pass "git hook non-executable not chained"
+}
+
 test_git_hook_existing_exit0_still_captures() {
   local tmp repo raw_log
   tmp="$(mktemp -d)"
@@ -284,6 +343,8 @@ main() {
   test_templates
   test_git_hook_capture
   test_git_hook_install_idempotent
+  test_git_hook_symlink_refuses_install
+  test_git_hook_non_executable_not_chained
   test_git_hook_existing_exit0_still_captures
   test_git_hook_guard_clause_still_captures
   test_git_hook_relative_helper_still_runs
