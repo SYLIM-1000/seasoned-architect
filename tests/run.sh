@@ -140,6 +140,52 @@ HOOK
   pass "git hook install idempotent"
 }
 
+test_git_hook_existing_exit0_still_captures() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+echo existing-hook > existing-hook-ran
+exit 0
+HOOK
+  chmod +x "$repo/.git/hooks/post-commit"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "exit zero" > "$repo/exit-zero.txt"
+  git -C "$repo" add exit-zero.txt
+  git -C "$repo" commit -q -m "capture before exit zero"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$repo/existing-hook-ran" ]] || fail "existing hook did not run"
+  [[ -f "$raw_log" ]] || fail "raw log missing when existing hook ends with exit 0"
+  grep -Fq '"message":"capture before exit zero"' "$raw_log" || fail "commit after existing exit 0 was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook existing exit 0"
+}
+
+test_git_hook_dollar_path_capture() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo-\$dollar"
+  make_git_repo "$repo"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "dollar" > "$repo/dollar.txt"
+  git -C "$repo" add dollar.txt
+  git -C "$repo" commit -q -m "capture dollar path"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$raw_log" ]] || fail "raw log missing when repo path contains dollar"
+  grep -Fq '"message":"capture dollar path"' "$raw_log" || fail "dollar path commit was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook dollar path capture"
+}
+
 test_git_hook_worktree_common_log() {
   local tmp repo wt raw_log
   tmp="$(mktemp -d)"
@@ -173,6 +219,8 @@ main() {
   test_templates
   test_git_hook_capture
   test_git_hook_install_idempotent
+  test_git_hook_existing_exit0_still_captures
+  test_git_hook_dollar_path_capture
   test_git_hook_worktree_common_log
 }
 
