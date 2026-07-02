@@ -91,6 +91,28 @@ test_templates() {
   pass "templates"
 }
 
+test_skills() {
+  assert_contains "skills/doc-init/SKILL.md" "disable-model-invocation: true"
+  assert_contains "skills/doc-init/SKILL.md" "install-git-hook.sh"
+  assert_contains "skills/doc-init/SKILL.md" "WORK_BREAKDOWN.md"
+  assert_contains "skills/doc-init/SKILL.md" "frontend-components.md"
+
+  assert_contains "skills/doc-slice/SKILL.md" "disable-model-invocation: true"
+  assert_contains "skills/doc-slice/SKILL.md" "MUST update"
+  assert_contains "skills/doc-slice/SKILL.md" "DOCS_MAP.md"
+  assert_contains "skills/doc-slice/SKILL.md" "Build-loop handoff"
+
+  assert_contains "skills/doc-sync/SKILL.md" "disable-model-invocation: true"
+  assert_contains "skills/doc-sync/SKILL.md" "git rev-parse --git-common-dir"
+  assert_contains "skills/doc-sync/SKILL.md" "Evidence priority"
+  assert_contains "skills/doc-sync/SKILL.md" "Verification"
+
+  assert_contains "skills/journaling/SKILL.md" "user-invocable: false"
+  assert_contains "skills/journaling/SKILL.md" "Do not invent intent"
+  assert_contains "skills/journaling/SKILL.md" "Evidence source"
+  pass "skills"
+}
+
 test_git_hook_capture() {
   local tmp repo raw_log
   tmp="$(mktemp -d)"
@@ -382,6 +404,7 @@ test_hooks_json() {
 main() {
   test_plugin_structure
   test_templates
+  test_skills
   test_git_hook_capture
   test_git_hook_install_idempotent
   test_git_hook_symlink_refuses_install
