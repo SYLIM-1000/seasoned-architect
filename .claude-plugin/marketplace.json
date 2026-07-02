@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "seasoned-architect",
+  "description": "Planning docs, slice handoffs, commit logs, and lazy context loading for long-running AI-assisted product development.",
+  "owner": {
+    "name": "임승용"
+  },
+  "plugins": [
+    {
+      "name": "seasoned-architect",
+      "description": "Keeps AI agents oriented in long-running product development through planning docs, slice handoffs, commit logs, and lazy context loading.",
+      "version": "0.1.0",
+      "author": {
+        "name": "임승용"
+      },
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
