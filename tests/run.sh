@@ -33,6 +33,24 @@ assert_json_valid() {
   python3 -m json.tool "$ROOT/$path" >/dev/null || fail "invalid json: $path"
 }
 
+make_git_repo() {
+  local repo="$1"
+  mkdir -p "$repo"
+  git -C "$repo" init -q
+  git -C "$repo" config user.name "Agent Docs Test"
+  git -C "$repo" config user.email "agent-docs@example.com"
+}
+
+common_dir_abs() {
+  local repo="$1"
+  local common
+  common="$(git -C "$repo" rev-parse --git-common-dir)"
+  case "$common" in
+    /*) printf '%s\n' "$common" ;;
+    *) printf '%s\n' "$repo/$common" ;;
+  esac
+}
+
 test_plugin_structure() {
   assert_file ".claude-plugin/plugin.json"
   assert_file "hooks/hooks.json"
@@ -73,9 +91,89 @@ test_templates() {
   pass "templates"
 }
 
+test_git_hook_capture() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "alpha" > "$repo/a.txt"
+  git -C "$repo" add a.txt
+  git -C "$repo" commit -q -m "add alpha"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$raw_log" ]] || fail "raw log was not created at common dir"
+  grep -Fq '"message":"add alpha"' "$raw_log" || fail "raw log missing commit message"
+  grep -Fq '"changed_files":["a.txt"]' "$raw_log" || fail "raw log missing changed file"
+  [[ ! -f "$repo/docs/agent/journal/$(date +%Y-%m).md" ]] || fail "post-commit hook must not write markdown journal"
+
+  rm -rf "$tmp"
+  pass "git hook capture"
+}
+
+test_git_hook_install_idempotent() {
+  local tmp repo hook_path block_count
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+echo existing-hook >/dev/null
+HOOK
+  chmod +x "$repo/.git/hooks/post-commit"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+
+  hook_path="$(git -C "$repo" rev-parse --git-path hooks/post-commit)"
+  case "$hook_path" in
+    /*) ;;
+    *) hook_path="$repo/$hook_path" ;;
+  esac
+  block_count="$(grep -c '# agent-docs: begin' "$hook_path")"
+  [[ "$block_count" = "1" ]] || fail "agent-docs hook block duplicated"
+  ls "$hook_path".bak.* >/dev/null 2>&1 || fail "existing hook backup was not created"
+
+  rm -rf "$tmp"
+  pass "git hook install idempotent"
+}
+
+test_git_hook_worktree_common_log() {
+  local tmp repo wt raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  wt="$tmp/wt"
+  make_git_repo "$repo"
+
+  echo "base" > "$repo/base.txt"
+  git -C "$repo" add base.txt
+  git -C "$repo" commit -q -m "base commit"
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  git -C "$repo" worktree add -q -b wt-branch "$wt"
+  git -C "$wt" config user.name "Agent Docs Test"
+  git -C "$wt" config user.email "agent-docs@example.com"
+
+  echo "worktree" > "$wt/wt.txt"
+  git -C "$wt" add wt.txt
+  git -C "$wt" commit -q -m "worktree commit"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$raw_log" ]] || fail "worktree raw log missing from common dir"
+  grep -Fq '"message":"worktree commit"' "$raw_log" || fail "worktree commit not captured in common raw log"
+
+  git -C "$repo" worktree remove -f "$wt"
+  rm -rf "$tmp"
+  pass "git hook worktree common log"
+}
+
 main() {
   test_plugin_structure
   test_templates
+  test_git_hook_capture
+  test_git_hook_install_idempotent
+  test_git_hook_worktree_common_log
 }
 
 main "$@"
