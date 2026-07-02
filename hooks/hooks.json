@@ -1,1 +1,31 @@
-{}
+{
+  "description": "Agent Docs lightweight context rules and sync nudge",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh",
+            "args": ["session"],
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh",
+            "args": ["subagent"],
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

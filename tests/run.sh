@@ -338,6 +338,47 @@ test_git_hook_worktree_common_log() {
   pass "git hook worktree common log"
 }
 
+test_context_script_session_and_subagent() {
+  local tmp repo output raw_log journal_dir
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+
+  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/no-docs.out")
+  [[ ! -s "$tmp/no-docs.out" ]] || fail "context script should be silent before docs/agent exists"
+
+  mkdir -p "$repo/docs/agent/journal"
+  cp "$ROOT/templates/DOCS_MAP.md" "$repo/docs/agent/DOCS_MAP.md"
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  mkdir -p "$(dirname "$raw_log")"
+  printf '%s\n' '{"commit":"abc123","timestamp":"2026-07-02T10:00:00+09:00","author":"Agent","message":"test commit","changed_files":["a.txt"],"source":"git-hook"}' > "$raw_log"
+
+  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/session.out")
+  grep -Fq '"hookEventName":"SessionStart"' "$tmp/session.out" || fail "session output missing hook event"
+  grep -Fq '미반영 커밋 1개 있음' "$tmp/session.out" || fail "session output missing unsynced nudge"
+  grep -Fq 'Do not load all agent docs by default' "$tmp/session.out" || fail "session output missing context budget rule"
+
+  journal_dir="$repo/docs/agent/journal"
+  printf '%s\n' '## 2026-07-02 · commit abc123' > "$journal_dir/2026-07.md"
+  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/synced.out")
+  grep -Fq '미반영 커밋' "$tmp/synced.out" && fail "synced output should not contain unsynced nudge"
+
+  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" subagent > "$tmp/subagent.out")
+  grep -Fq '"hookEventName":"SubagentStart"' "$tmp/subagent.out" || fail "subagent output missing hook event"
+  grep -Fq 'Build-loop handoff' "$tmp/subagent.out" || fail "subagent output missing handoff instruction"
+
+  rm -rf "$tmp"
+  pass "context script"
+}
+
+test_hooks_json() {
+  assert_json_valid "hooks/hooks.json"
+  assert_contains "hooks/hooks.json" "SessionStart"
+  assert_contains "hooks/hooks.json" "SubagentStart"
+  assert_contains "hooks/hooks.json" '${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh'
+  pass "hooks json"
+}
+
 main() {
   test_plugin_structure
   test_templates
@@ -350,6 +391,8 @@ main() {
   test_git_hook_relative_helper_still_runs
   test_git_hook_dollar_path_capture
   test_git_hook_worktree_common_log
+  test_context_script_session_and_subagent
+  test_hooks_json
 }
 
 main "$@"
