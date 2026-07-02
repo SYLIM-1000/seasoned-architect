@@ -33,7 +33,7 @@ status: draft
 
 ## Build-loop handoff
 
-Agent Docs slice: {{SLICE_NAME}}
+Seasoned Architect slice: {{SLICE_NAME}}
 
 Read first:
 - docs/agent/DOCS_MAP.md

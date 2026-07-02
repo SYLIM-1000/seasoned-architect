@@ -1,11 +1,11 @@
 ---
 name: doc-sync
-description: Sync unsynced Agent Docs raw commit logs into docs/agent/journal markdown entries. Use when the user asks to sync, update, or write the Agent Docs journal.
+description: Sync unsynced Seasoned Architect raw commit logs into docs/agent/journal markdown entries. Use when the user asks to sync, update, or write the Seasoned Architect journal.
 argument-hint: "[optional commit range]"
 disable-model-invocation: true
 ---
 
-# Agent Docs Sync
+# Seasoned Architect Sync
 
 Convert raw commit facts into readable markdown journal entries.
 
@@ -20,10 +20,10 @@ git rev-parse --git-common-dir
 Then read:
 
 ```txt
-<git-common-dir>/agent-docs/raw-log.jsonl
+<git-common-dir>/Seasoned-Architect/raw-log.jsonl
 ```
 
-Do not use `git rev-parse --git-path agent-docs/raw-log.jsonl` for raw logs.
+Do not use `git rev-parse --git-path Seasoned-Architect/raw-log.jsonl` for raw logs.
 
 ## Sync detection
 

@@ -1,13 +1,13 @@
 ---
 name: doc-init
-description: Initialize Agent Docs for a repository by creating docs/agent structure and installing the post-commit capture hook. Use when the user explicitly asks to set up Agent Docs in a repo.
+description: Initialize Seasoned Architect for a repository by creating docs/agent structure and installing the post-commit capture hook. Use when the user explicitly asks to set up Seasoned Architect in a repo.
 argument-hint: "[optional project summary]"
 disable-model-invocation: true
 ---
 
-# Agent Docs Init
+# Seasoned Architect Init
 
-Initialize Agent Docs in the current Git repository.
+Initialize Seasoned Architect in the current Git repository.
 
 ## Rules
 
@@ -52,4 +52,4 @@ Report:
 - Files created
 - Files skipped because they already existed
 - Git hook status
-- Next recommended action, usually `/agent-docs:doc-slice <slice-name>`
+- Next recommended action, usually `/Seasoned-Architect:doc-slice <slice-name>`

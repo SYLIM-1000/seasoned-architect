@@ -8,7 +8,7 @@ case "$common_dir" in
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
 
-agent_dir="$common_dir_abs/agent-docs"
+agent_dir="$common_dir_abs/Seasoned-Architect"
 raw_log="$agent_dir/raw-log.jsonl"
 mkdir -p "$agent_dir" 2>/dev/null || exit 0
 

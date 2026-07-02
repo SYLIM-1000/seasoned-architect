@@ -14,7 +14,7 @@ case "$common_dir" in
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
 
-raw_log="$common_dir_abs/agent-docs/raw-log.jsonl"
+raw_log="$common_dir_abs/Seasoned-Architect/raw-log.jsonl"
 journal_dir="$repo_root/docs/agent/journal"
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -32,7 +32,7 @@ journal_dir = sys.argv[3]
 hook_event = "SubagentStart" if mode == "subagent" else "SessionStart"
 
 base_session = "\n".join([
-    "Agent Docs active.",
+    "Seasoned Architect active.",
     "For context-heavy work, inspect docs/agent/DOCS_MAP.md first.",
     "Let DOCS_MAP decide which docs to read.",
     "Do not load all agent docs by default.",
@@ -40,7 +40,7 @@ base_session = "\n".join([
 ])
 
 base_subagent = "\n".join([
-    "Agent Docs active for this repo.",
+    "Seasoned Architect active for this repo.",
     "For context-heavy work, inspect docs/agent/DOCS_MAP.md first.",
     "Read only the docs relevant to your assigned task.",
     "Do not load all agent docs by default.",
@@ -86,7 +86,7 @@ if mode != "subagent":
     journal_text = read_journal_text(journal_dir)
     unsynced = [commit for commit in commits if commit not in journal_text]
     if unsynced:
-        context += f"\n\nAgent Docs: 미반영 커밋 {len(unsynced)}개 있음. `/agent-docs:doc-sync` 실행 권장."
+        context += f"\n\nSeasoned Architect: 미반영 커밋 {len(unsynced)}개 있음. `/Seasoned-Architect:doc-sync` 실행 권장."
 
 print(json.dumps({
     "hookSpecificOutput": {

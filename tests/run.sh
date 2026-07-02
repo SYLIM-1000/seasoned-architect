@@ -37,8 +37,8 @@ make_git_repo() {
   local repo="$1"
   mkdir -p "$repo"
   git -C "$repo" init -q
-  git -C "$repo" config user.name "Agent Docs Test"
-  git -C "$repo" config user.email "agent-docs@example.com"
+  git -C "$repo" config user.name "Seasoned Architect Test"
+  git -C "$repo" config user.email "seasoned-architect@example.com"
 }
 
 common_dir_abs() {
@@ -67,16 +67,16 @@ test_plugin_structure() {
   assert_file "templates/journal-entry.md"
   assert_file "scripts/install-git-hook.sh"
   assert_file "scripts/post-commit-capture.sh"
-  assert_file "scripts/agent-docs-context.sh"
+  assert_file "scripts/Seasoned-Architect-context.sh"
   assert_executable "scripts/install-git-hook.sh"
   assert_executable "scripts/post-commit-capture.sh"
-  assert_executable "scripts/agent-docs-context.sh"
+  assert_executable "scripts/Seasoned-Architect-context.sh"
   assert_json_valid ".claude-plugin/plugin.json"
   pass "plugin structure"
 }
 
 test_templates() {
-  assert_contains "templates/DOCS_MAP.md" "# Agent Docs Map"
+  assert_contains "templates/DOCS_MAP.md" "# Seasoned Architect Map"
   assert_contains "templates/DOCS_MAP.md" "## 읽기 우선순위"
   assert_contains "templates/DOCS_MAP.md" "전체 문서를 무작정 다 읽지 않는다"
   assert_contains "templates/WORK_BREAKDOWN.md" "# Work Breakdown"
@@ -124,7 +124,7 @@ test_git_hook_capture() {
   git -C "$repo" add a.txt
   git -C "$repo" commit -q -m "add alpha"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$raw_log" ]] || fail "raw log was not created at common dir"
   grep -Fq '"message":"add alpha"' "$raw_log" || fail "raw log missing commit message"
   grep -Fq '"changed_files":["a.txt"]' "$raw_log" || fail "raw log missing changed file"
@@ -149,7 +149,7 @@ test_git_hook_core_hooks_path_capture() {
   git -C "$repo" add custom-hooks.txt
   git -C "$repo" commit -q -m "capture custom hooks path"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$raw_log" ]] || fail "raw log missing with core.hooksPath"
   grep -Fq '"message":"capture custom hooks path"' "$raw_log" || fail "core.hooksPath commit was not captured"
 
@@ -168,7 +168,7 @@ test_git_hook_space_path_capture() {
   git -C "$repo" add spaces.txt
   git -C "$repo" commit -q -m "capture space path"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$raw_log" ]] || fail "raw log missing when repo path contains spaces"
   grep -Fq '"message":"capture space path"' "$raw_log" || fail "space path commit was not captured"
 
@@ -196,10 +196,10 @@ HOOK
     /*) ;;
     *) hook_path="$repo/$hook_path" ;;
   esac
-  block_count="$(grep -c '# agent-docs: begin' "$hook_path")"
-  [[ "$block_count" = "1" ]] || fail "agent-docs hook block duplicated"
+  block_count="$(grep -c '# Seasoned-Architect: begin' "$hook_path")"
+  [[ "$block_count" = "1" ]] || fail "Seasoned-Architect hook block duplicated"
   ls "$hook_path".bak.* >/dev/null 2>&1 || fail "existing hook backup was not created"
-  original_hook="$(dirname "$hook_path")/post-commit.agent-docs-original"
+  original_hook="$(dirname "$hook_path")/post-commit.Seasoned-Architect-original"
   [[ -x "$original_hook" ]] || fail "original hook copy was not created"
   grep -Fq "existing-hook" "$original_hook" || fail "original hook copy missing existing hook content"
 
@@ -255,7 +255,7 @@ HOOK
   git -C "$repo" commit -q -m "capture without inactive hook"
 
   hook_path="$repo/.git/hooks/post-commit"
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   grep -Fq "not executable; preserving but not chaining it" <<<"$output" || fail "non-executable hook message missing"
   ls "$hook_path".bak.* >/dev/null 2>&1 || fail "non-executable hook backup was not created"
   [[ -f "$raw_log" ]] || fail "raw log missing for non-executable hook"
@@ -284,7 +284,7 @@ HOOK
   git -C "$repo" add exit-zero.txt
   git -C "$repo" commit -q -m "capture before exit zero"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$repo/existing-hook-ran" ]] || fail "existing hook did not run"
   [[ -f "$raw_log" ]] || fail "raw log missing when existing hook ends with exit 0"
   grep -Fq '"message":"capture before exit zero"' "$raw_log" || fail "commit after existing exit 0 was not captured"
@@ -307,7 +307,7 @@ case "$common_dir" in
   /*) common_dir_abs="$common_dir" ;;
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
-raw_log="$common_dir_abs/agent-docs/raw-log.jsonl"
+raw_log="$common_dir_abs/Seasoned-Architect/raw-log.jsonl"
 order_log="$repo_root/order.log"
 if [[ -f "$raw_log" ]]; then
   echo "capture-before-original" >> "$order_log"
@@ -322,7 +322,7 @@ HOOK
   git -C "$repo" add ordered.txt
   git -C "$repo" commit -q -m "capture before original"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   order_log="$repo/order.log"
   [[ -f "$raw_log" ]] || fail "raw log missing for executable original order test"
   [[ -f "$order_log" ]] || fail "existing executable hook did not write order log"
@@ -353,7 +353,7 @@ HOOK
   git -C "$repo" add guard.txt
   git -C "$repo" commit -q -m "capture with guard clause"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$repo/existing-hook-ran" ]] || fail "existing guard hook did not run"
   [[ -f "$raw_log" ]] || fail "raw log missing when existing hook has guard clause"
   grep -Fq '"message":"capture with guard clause"' "$raw_log" || fail "guard clause commit was not captured"
@@ -386,7 +386,7 @@ HOOK
   git -C "$repo" add relative-helper.txt
   git -C "$repo" commit -q -m "capture with relative helper"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$repo/helper-hook-ran" ]] || fail "existing hook relative helper did not run"
   [[ -f "$raw_log" ]] || fail "raw log missing when existing hook uses relative helper"
   grep -Fq '"message":"capture with relative helper"' "$raw_log" || fail "relative helper commit was not captured"
@@ -406,7 +406,7 @@ test_git_hook_dollar_path_capture() {
   git -C "$repo" add dollar.txt
   git -C "$repo" commit -q -m "capture dollar path"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$raw_log" ]] || fail "raw log missing when repo path contains dollar"
   grep -Fq '"message":"capture dollar path"' "$raw_log" || fail "dollar path commit was not captured"
 
@@ -426,14 +426,14 @@ test_git_hook_worktree_common_log() {
   git -C "$repo" commit -q -m "base commit"
   (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
   git -C "$repo" worktree add -q -b wt-branch "$wt"
-  git -C "$wt" config user.name "Agent Docs Test"
-  git -C "$wt" config user.email "agent-docs@example.com"
+  git -C "$wt" config user.name "Seasoned Architect Test"
+  git -C "$wt" config user.email "seasoned-architect@example.com"
 
   echo "worktree" > "$wt/wt.txt"
   git -C "$wt" add wt.txt
   git -C "$wt" commit -q -m "worktree commit"
 
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   [[ -f "$raw_log" ]] || fail "worktree raw log missing from common dir"
   grep -Fq '"message":"worktree commit"' "$raw_log" || fail "worktree commit not captured in common raw log"
 
@@ -448,26 +448,26 @@ test_context_script_session_and_subagent() {
   repo="$tmp/repo"
   make_git_repo "$repo"
 
-  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/no-docs.out")
+  (cd "$repo" && "$ROOT/scripts/Seasoned-Architect-context.sh" session > "$tmp/no-docs.out")
   [[ ! -s "$tmp/no-docs.out" ]] || fail "context script should be silent before docs/agent exists"
 
   mkdir -p "$repo/docs/agent/journal"
   cp "$ROOT/templates/DOCS_MAP.md" "$repo/docs/agent/DOCS_MAP.md"
-  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  raw_log="$(common_dir_abs "$repo")/Seasoned-Architect/raw-log.jsonl"
   mkdir -p "$(dirname "$raw_log")"
   printf '%s\n' '{"commit":"abc123","timestamp":"2026-07-02T10:00:00+09:00","author":"Agent","message":"test commit","changed_files":["a.txt"],"source":"git-hook"}' > "$raw_log"
 
-  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/session.out")
+  (cd "$repo" && "$ROOT/scripts/Seasoned-Architect-context.sh" session > "$tmp/session.out")
   grep -Fq '"hookEventName":"SessionStart"' "$tmp/session.out" || fail "session output missing hook event"
   grep -Fq '미반영 커밋 1개 있음' "$tmp/session.out" || fail "session output missing unsynced nudge"
   grep -Fq 'Do not load all agent docs by default' "$tmp/session.out" || fail "session output missing context budget rule"
 
   journal_dir="$repo/docs/agent/journal"
   printf '%s\n' '## 2026-07-02 · commit abc123' > "$journal_dir/2026-07.md"
-  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" session > "$tmp/synced.out")
+  (cd "$repo" && "$ROOT/scripts/Seasoned-Architect-context.sh" session > "$tmp/synced.out")
   grep -Fq '미반영 커밋' "$tmp/synced.out" && fail "synced output should not contain unsynced nudge"
 
-  (cd "$repo" && "$ROOT/scripts/agent-docs-context.sh" subagent > "$tmp/subagent.out")
+  (cd "$repo" && "$ROOT/scripts/Seasoned-Architect-context.sh" subagent > "$tmp/subagent.out")
   grep -Fq '"hookEventName":"SubagentStart"' "$tmp/subagent.out" || fail "subagent output missing hook event"
   grep -Fq 'Build-loop handoff' "$tmp/subagent.out" || fail "subagent output missing handoff instruction"
 
@@ -479,7 +479,7 @@ test_hooks_json() {
   assert_json_valid "hooks/hooks.json"
   assert_contains "hooks/hooks.json" "SessionStart"
   assert_contains "hooks/hooks.json" "SubagentStart"
-  assert_contains "hooks/hooks.json" '${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh'
+  assert_contains "hooks/hooks.json" '${CLAUDE_PLUGIN_ROOT}/scripts/Seasoned-Architect-context.sh'
   pass "hooks json"
 }
 

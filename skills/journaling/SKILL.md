@@ -1,10 +1,10 @@
 ---
 name: journaling
-description: Internal Agent Docs guidance for writing concise, evidence-based journal entries from git commits, slice docs, and diffs.
+description: Internal Seasoned Architect guidance for writing concise, evidence-based journal entries from git commits, slice docs, and diffs.
 user-invocable: false
 ---
 
-# Agent Docs Journaling Rules
+# Seasoned Architect Journaling Rules
 
 Use these rules when writing `docs/agent/journal/YYYY-MM.md` entries.
 

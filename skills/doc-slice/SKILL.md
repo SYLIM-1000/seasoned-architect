@@ -1,11 +1,11 @@
 ---
 name: doc-slice
-description: Create a new Agent Docs slice with plan.md and guide.md, then update DOCS_MAP.md and WORK_BREAKDOWN.md. Use only when the user explicitly asks to create or scaffold a slice.
+description: Create a new Seasoned Architect slice with plan.md and guide.md, then update DOCS_MAP.md and WORK_BREAKDOWN.md. Use only when the user explicitly asks to create or scaffold a slice.
 argument-hint: "<slice-name>"
 disable-model-invocation: true
 ---
 
-# Agent Docs Slice
+# Seasoned Architect Slice
 
 Create a new implementation slice.
 
@@ -43,7 +43,7 @@ Ask only for fields that cannot be inferred:
 
 The generated `guide.md` must contain:
 
-- Agent Docs slice name
+- Seasoned Architect slice name
 - Read first docs
 - Read only if needed docs
 - Source of truth

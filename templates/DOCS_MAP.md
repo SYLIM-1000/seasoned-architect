@@ -1,4 +1,4 @@
-# Agent Docs Map
+# Seasoned Architect Map
 
 ## 읽기 우선순위
 

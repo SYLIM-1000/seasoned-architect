@@ -1,5 +1,5 @@
 {
-  "description": "Agent Docs lightweight context rules and sync nudge",
+  "description": "Seasoned Architect lightweight context rules and sync nudge",
   "hooks": {
     "SessionStart": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/Seasoned-Architect-context.sh",
             "args": ["session"],
             "timeout": 5
           }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/agent-docs-context.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/Seasoned-Architect-context.sh",
             "args": ["subagent"],
             "timeout": 5
           }
