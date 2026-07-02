@@ -1,0 +1,20 @@
+{
+  "name": "seasoned-architect",
+  "interface": {
+    "displayName": "Seasoned Architect"
+  },
+  "plugins": [
+    {
+      "name": "seasoned-architect",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

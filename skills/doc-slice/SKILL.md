@@ -2,7 +2,6 @@
 name: doc-slice
 description: Use when confirmed Implementation Specs in docs/agent/WORK_BREAKDOWN.md need to be split into build-loop-ready slice plans and guides.
 argument-hint: "[optional MVP, part, or spec filter]"
-disable-model-invocation: true
 ---
 
 # Seasoned Architect Slice

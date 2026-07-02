@@ -2,7 +2,6 @@
 name: doc-init
 description: Initialize Seasoned Architect for a repository by creating docs/agent structure and installing the post-commit capture hook. Use when the user explicitly asks to set up Seasoned Architect in a repo.
 argument-hint: "[optional project summary]"
-disable-model-invocation: true
 ---
 
 # Seasoned Architect Init

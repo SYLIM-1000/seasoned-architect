@@ -1,0 +1,36 @@
+{
+  "name": "seasoned-architect",
+  "version": "0.1.0",
+  "description": "Keeps AI agents oriented in long-running product development through planning docs, slice handoffs, commit logs, and lazy context loading.",
+  "author": {
+    "name": "임승용"
+  },
+  "keywords": [
+    "planning",
+    "architecture",
+    "mvp",
+    "slices",
+    "handoff",
+    "agent-docs"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Seasoned Architect",
+    "shortDescription": "Planning docs and slice handoffs for AI-assisted builds",
+    "longDescription": "Use Seasoned Architect to organize product plans, MVP breakdowns, implementation specs, slice plans, build-loop handoffs, and commit-based project memory for long-running AI-assisted development.",
+    "developerName": "임승용",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Instructions",
+      "Read",
+      "Write",
+      "Lifecycle hooks"
+    ],
+    "defaultPrompt": [
+      "Initialize Seasoned Architect docs for this repo.",
+      "Break this plan into MVPs and implementation specs.",
+      "Create build-ready slice plans and guides."
+    ],
+    "brandColor": "#2F6F5E"
+  }
+}

@@ -2,7 +2,6 @@
 name: doc-breakdown
 description: Use when external product planning, UI planning, architecture notes, or visual planning artifacts are ready and need to be organized into Seasoned Architect docs before implementation slicing.
 argument-hint: "[planning source or project summary]"
-disable-model-invocation: true
 ---
 
 # Seasoned Architect Breakdown

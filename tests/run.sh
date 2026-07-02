@@ -53,6 +53,8 @@ common_dir_abs() {
 
 test_plugin_structure() {
   assert_file ".claude-plugin/plugin.json"
+  assert_file ".codex-plugin/plugin.json"
+  assert_file ".agents/plugins/marketplace.json"
   assert_file "hooks/hooks.json"
   assert_file "skills/doc-breakdown/SKILL.md"
   assert_file "skills/doc-init/SKILL.md"
@@ -73,7 +75,51 @@ test_plugin_structure() {
   assert_executable "scripts/post-commit-capture.sh"
   assert_executable "scripts/seasoned-architect-context.sh"
   assert_json_valid ".claude-plugin/plugin.json"
+  assert_json_valid ".codex-plugin/plugin.json"
+  assert_json_valid ".agents/plugins/marketplace.json"
   pass "plugin structure"
+}
+
+test_codex_plugin_manifest() {
+  python3 - "$ROOT/.codex-plugin/plugin.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+manifest = json.loads(path.read_text(encoding="utf-8"))
+assert manifest["name"] == "seasoned-architect"
+assert manifest["version"] == "0.1.0"
+assert manifest["skills"] == "./skills/"
+assert "hooks" not in manifest
+interface = manifest["interface"]
+assert interface["displayName"] == "Seasoned Architect"
+assert interface["developerName"] == "임승용"
+assert "defaultPrompt" in interface
+assert "Instructions" in interface["capabilities"]
+PY
+  pass "codex plugin manifest"
+}
+
+test_codex_marketplace_manifest() {
+  python3 - "$ROOT/.agents/plugins/marketplace.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+manifest = json.loads(path.read_text(encoding="utf-8"))
+assert manifest["name"] == "seasoned-architect"
+assert manifest["interface"]["displayName"] == "Seasoned Architect"
+plugins = manifest["plugins"]
+assert len(plugins) == 1
+plugin = plugins[0]
+assert plugin["name"] == "seasoned-architect"
+assert plugin["source"] == {"source": "local", "path": "./"}
+assert plugin["policy"] == {"installation": "AVAILABLE", "authentication": "ON_INSTALL"}
+assert plugin["category"] == "Developer Tools"
+PY
+  pass "codex marketplace manifest"
 }
 
 test_templates() {
@@ -101,6 +147,12 @@ test_templates() {
   pass "templates"
 }
 
+test_skill_frontmatter_codex_compatible() {
+  ! grep -R "disable-model-invocation: true" "$ROOT/skills" || fail "Codex rejects disable-model-invocation: true"
+  ! grep -R "disable_model_invocation: true" "$ROOT/skills" || fail "Codex rejects disable_model_invocation: true"
+  pass "skill frontmatter codex compatible"
+}
+
 test_skills() {
   assert_contains "skills/doc-breakdown/SKILL.md" "Use when"
   assert_contains "skills/doc-breakdown/SKILL.md" "External planning readiness"
@@ -111,13 +163,11 @@ test_skills() {
   assert_contains "skills/doc-breakdown/SKILL.md" "Spec review status: reviewed"
   assert_contains "skills/doc-breakdown/SKILL.md" "Do not hand off to /seasoned-architect:doc-slice until the user confirms"
 
-  assert_contains "skills/doc-init/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-init/SKILL.md" "install-git-hook.sh"
   assert_contains "skills/doc-init/SKILL.md" "WORK_BREAKDOWN.md"
   assert_contains "skills/doc-init/SKILL.md" "frontend-components.md"
   assert_contains "skills/doc-init/SKILL.md" "/seasoned-architect:doc-breakdown"
 
-  assert_contains "skills/doc-slice/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-slice/SKILL.md" "MUST update"
   assert_contains "skills/doc-slice/SKILL.md" "DOCS_MAP.md"
   assert_contains "skills/doc-slice/SKILL.md" "Build-loop handoff"
@@ -128,7 +178,6 @@ test_skills() {
   assert_contains "skills/doc-slice/SKILL.md" "Infer verification commands"
   assert_contains "skills/doc-slice/SKILL.md" "Spec review status: reviewed"
 
-  assert_contains "skills/doc-sync/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-sync/SKILL.md" "git rev-parse --git-common-dir"
   assert_contains "skills/doc-sync/SKILL.md" "Evidence priority"
   assert_contains "skills/doc-sync/SKILL.md" "Verification"
@@ -550,7 +599,10 @@ test_hooks_json() {
 
 main() {
   test_plugin_structure
+  test_codex_plugin_manifest
+  test_codex_marketplace_manifest
   test_templates
+  test_skill_frontmatter_codex_compatible
   test_skills
   test_git_hook_capture
   test_git_hook_core_hooks_path_capture

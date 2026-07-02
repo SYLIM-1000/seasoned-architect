@@ -2,7 +2,6 @@
 name: doc-sync
 description: Sync unsynced Seasoned Architect raw commit logs into docs/agent/journal markdown entries. Use when the user asks to sync, update, or write the Seasoned Architect journal.
 argument-hint: "[optional commit range]"
-disable-model-invocation: true
 ---
 
 # Seasoned Architect Sync
