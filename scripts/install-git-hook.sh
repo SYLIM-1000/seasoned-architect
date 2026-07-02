@@ -13,7 +13,9 @@ case "$common_dir" in
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
 
-agent_bin="$common_dir_abs/agent-docs/bin"
+agent_dir="$common_dir_abs/agent-docs"
+agent_bin="$agent_dir/bin"
+agent_hooks="$agent_dir/hooks"
 mkdir -p "$agent_bin"
 cp "$script_dir/post-commit-capture.sh" "$agent_bin/post-commit-capture.sh"
 chmod +x "$agent_bin/post-commit-capture.sh"
@@ -36,63 +38,42 @@ else
 fi
 
 capture_path="$agent_bin/post-commit-capture.sh"
+original_hook="$agent_hooks/original-post-commit.sh"
 capture_path_literal="$(printf '%q' "$capture_path")"
-block=$(cat <<BLOCK
+original_hook_literal="$(printf '%q' "$original_hook")"
+
+write_wrapper() {
+  cat > "$hook_path" <<HOOK
+#!/usr/bin/env bash
 # agent-docs: begin
+# agent-docs: wrapper
 $capture_path_literal || true
+if [[ -x $original_hook_literal ]]; then
+  $original_hook_literal || true
+fi
 # agent-docs: end
-BLOCK
-)
-
-install_block_into_existing_hook() {
-  local hook_path="$1"
-  local stripped
-  local last_exit
-
-  stripped="$(mktemp)"
-  awk '
-    /^# agent-docs: begin$/ { skip = 1; next }
-    /^# agent-docs: end$/ { skip = 0; next }
-    !skip { print }
-  ' "$hook_path" > "$stripped"
-
-  last_exit="$(grep -nE '^[[:space:]]*exit[[:space:]]+0([[:space:]]*(#.*)?)?$' "$stripped" | tail -n 1 | cut -d: -f1 || true)"
-  if [[ -n "$last_exit" ]]; then
-    {
-      if (( last_exit > 1 )); then
-        head -n "$((last_exit - 1))" "$stripped"
-      fi
-      printf '\n%s\n' "$block"
-      tail -n +"$last_exit" "$stripped"
-    } > "$hook_path"
-  else
-    {
-      cat "$stripped"
-      printf '\n%s\n' "$block"
-      printf 'exit 0\n'
-    } > "$hook_path"
-  fi
-
-  rm -f "$stripped"
+exit 0
+HOOK
 }
 
 if [[ -f "$hook_path" ]]; then
-  if grep -Fq "# agent-docs: begin" "$hook_path"; then
-    install_block_into_existing_hook "$hook_path"
+  if grep -Fq "# agent-docs: wrapper" "$hook_path"; then
     chmod +x "$hook_path"
     echo "agent-docs: post-commit hook already installed at $hook_path"
     exit 0
   fi
+
   backup="$hook_path.bak.$(date +%Y%m%d%H%M%S)"
   cp "$hook_path" "$backup"
-  install_block_into_existing_hook "$hook_path"
-else
-  cat > "$hook_path" <<HOOK
-#!/usr/bin/env bash
-$block
-exit 0
-HOOK
+  mkdir -p "$agent_hooks"
+  awk '
+    /^# agent-docs: begin$/ { skip = 1; next }
+    /^# agent-docs: end$/ { skip = 0; next }
+    !skip { print }
+  ' "$hook_path" > "$original_hook"
+  chmod +x "$original_hook"
 fi
 
+write_wrapper
 chmod +x "$hook_path"
 echo "agent-docs: installed post-commit hook at $hook_path"

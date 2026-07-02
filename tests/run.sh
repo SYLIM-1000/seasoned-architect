@@ -113,7 +113,7 @@ test_git_hook_capture() {
 }
 
 test_git_hook_install_idempotent() {
-  local tmp repo hook_path block_count
+  local tmp repo hook_path original_hook block_count
   tmp="$(mktemp -d)"
   repo="$tmp/repo"
   make_git_repo "$repo"
@@ -135,6 +135,9 @@ HOOK
   block_count="$(grep -c '# agent-docs: begin' "$hook_path")"
   [[ "$block_count" = "1" ]] || fail "agent-docs hook block duplicated"
   ls "$hook_path".bak.* >/dev/null 2>&1 || fail "existing hook backup was not created"
+  original_hook="$(common_dir_abs "$repo")/agent-docs/hooks/original-post-commit.sh"
+  [[ -x "$original_hook" ]] || fail "original hook copy was not created"
+  grep -Fq "existing-hook" "$original_hook" || fail "original hook copy missing existing hook content"
 
   rm -rf "$tmp"
   pass "git hook install idempotent"
@@ -165,6 +168,35 @@ HOOK
 
   rm -rf "$tmp"
   pass "git hook existing exit 0"
+}
+
+test_git_hook_guard_clause_still_captures() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks"
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+if [[ -n "${SKIP_AGENT_DOCS:-}" ]]; then
+  exit 0
+fi
+echo existing-hook > existing-hook-ran
+HOOK
+  chmod +x "$repo/.git/hooks/post-commit"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "guard" > "$repo/guard.txt"
+  git -C "$repo" add guard.txt
+  git -C "$repo" commit -q -m "capture with guard clause"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$repo/existing-hook-ran" ]] || fail "existing guard hook did not run"
+  [[ -f "$raw_log" ]] || fail "raw log missing when existing hook has guard clause"
+  grep -Fq '"message":"capture with guard clause"' "$raw_log" || fail "guard clause commit was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook guard clause"
 }
 
 test_git_hook_dollar_path_capture() {
@@ -220,6 +252,7 @@ main() {
   test_git_hook_capture
   test_git_hook_install_idempotent
   test_git_hook_existing_exit0_still_captures
+  test_git_hook_guard_clause_still_captures
   test_git_hook_dollar_path_capture
   test_git_hook_worktree_common_log
 }
