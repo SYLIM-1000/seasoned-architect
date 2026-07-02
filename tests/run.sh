@@ -57,8 +57,25 @@ test_plugin_structure() {
   pass "plugin structure"
 }
 
+test_templates() {
+  assert_contains "templates/DOCS_MAP.md" "# Agent Docs Map"
+  assert_contains "templates/DOCS_MAP.md" "## 읽기 우선순위"
+  assert_contains "templates/DOCS_MAP.md" "전체 문서를 무작정 다 읽지 않는다"
+  assert_contains "templates/WORK_BREAKDOWN.md" "# Work Breakdown"
+  assert_contains "templates/WORK_BREAKDOWN.md" "Build-loop ready"
+  assert_contains "templates/structure.md" "# Project Structure"
+  assert_contains "templates/frontend-components.md" "# Frontend Components"
+  assert_contains "templates/slice-plan.md" "mvp:"
+  assert_contains "templates/slice-guide.md" "## Build-loop handoff"
+  assert_contains "templates/slice-guide.md" "Read only if needed"
+  assert_contains "templates/journal-entry.md" "**Verification**"
+  assert_contains "templates/journal-entry.md" "**Evidence source**"
+  pass "templates"
+}
+
 main() {
   test_plugin_structure
+  test_templates
 }
 
 main "$@"
