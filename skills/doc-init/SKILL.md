@@ -52,4 +52,4 @@ Report:
 - Files created
 - Files skipped because they already existed
 - Git hook status
-- Next recommended action, usually `/Seasoned-Architect:doc-slice <slice-name>`
+- Next recommended action, usually `/Seasoned-Architect:doc-breakdown`

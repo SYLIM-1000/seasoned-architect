@@ -8,10 +8,21 @@
 
 ### MVP Alpha
 
+- MVP goal: {{MVP_GOAL}}
+
 #### Part: {{PART_NAME}}
+
+- Part goal: {{PART_GOAL}}
 
 ##### Implementation Spec: {{SPEC_NAME}}
 
+- Screen: {{SCREEN}}
+- Data: {{DATA}}
+- State: {{STATE}}
+- Permissions: {{PERMISSIONS}}
+- Exception cases: {{EXCEPTION_CASES}}
+- Acceptance criteria: {{ACCEPTANCE_CRITERIA}}
+- Spec review status: not reviewed
 - Slice: {{SLICE_NAME}}
 - 관련 문서: `docs/agent/slices/{{SLICE_NAME}}/`
 - 관련 frontend component: {{FRONTEND_COMPONENTS}}

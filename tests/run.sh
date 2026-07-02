@@ -54,6 +54,7 @@ common_dir_abs() {
 test_plugin_structure() {
   assert_file ".claude-plugin/plugin.json"
   assert_file "hooks/hooks.json"
+  assert_file "skills/doc-breakdown/SKILL.md"
   assert_file "skills/doc-init/SKILL.md"
   assert_file "skills/doc-slice/SKILL.md"
   assert_file "skills/doc-sync/SKILL.md"
@@ -81,10 +82,19 @@ test_templates() {
   assert_contains "templates/DOCS_MAP.md" "전체 문서를 무작정 다 읽지 않는다"
   assert_contains "templates/WORK_BREAKDOWN.md" "# Work Breakdown"
   assert_contains "templates/WORK_BREAKDOWN.md" "Build-loop ready"
+  assert_contains "templates/WORK_BREAKDOWN.md" "MVP goal"
+  assert_contains "templates/WORK_BREAKDOWN.md" "Part goal"
+  assert_contains "templates/WORK_BREAKDOWN.md" "Spec review status"
+  assert_contains "templates/WORK_BREAKDOWN.md" "Screen"
+  assert_contains "templates/WORK_BREAKDOWN.md" "Permissions"
   assert_contains "templates/structure.md" "# Project Structure"
   assert_contains "templates/frontend-components.md" "# Frontend Components"
   assert_contains "templates/slice-plan.md" "mvp:"
+  assert_contains "templates/slice-plan.md" "source_spec:"
+  assert_contains "templates/slice-plan.md" "Acceptance criteria"
   assert_contains "templates/slice-guide.md" "## Build-loop handoff"
+  assert_contains "templates/slice-guide.md" "High-risk review"
+  assert_contains "templates/slice-guide.md" "Verification commands"
   assert_contains "templates/slice-guide.md" "Read only if needed"
   assert_contains "templates/journal-entry.md" "**Verification**"
   assert_contains "templates/journal-entry.md" "**Evidence source**"
@@ -92,15 +102,31 @@ test_templates() {
 }
 
 test_skills() {
+  assert_contains "skills/doc-breakdown/SKILL.md" "Use when"
+  assert_contains "skills/doc-breakdown/SKILL.md" "External planning readiness"
+  assert_contains "skills/doc-breakdown/SKILL.md" "Do not brainstorm inside this skill"
+  assert_contains "skills/doc-breakdown/SKILL.md" "sub agent"
+  assert_contains "skills/doc-breakdown/SKILL.md" "Implementation Spec"
+  assert_contains "skills/doc-breakdown/SKILL.md" "MVP checkpoints"
+  assert_contains "skills/doc-breakdown/SKILL.md" "Spec review status: reviewed"
+  assert_contains "skills/doc-breakdown/SKILL.md" "Do not hand off to /Seasoned-Architect:doc-slice until the user confirms"
+
   assert_contains "skills/doc-init/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-init/SKILL.md" "install-git-hook.sh"
   assert_contains "skills/doc-init/SKILL.md" "WORK_BREAKDOWN.md"
   assert_contains "skills/doc-init/SKILL.md" "frontend-components.md"
+  assert_contains "skills/doc-init/SKILL.md" "/Seasoned-Architect:doc-breakdown"
 
   assert_contains "skills/doc-slice/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-slice/SKILL.md" "MUST update"
   assert_contains "skills/doc-slice/SKILL.md" "DOCS_MAP.md"
   assert_contains "skills/doc-slice/SKILL.md" "Build-loop handoff"
+  assert_contains "skills/doc-slice/SKILL.md" "Generate slice plans first"
+  assert_contains "skills/doc-slice/SKILL.md" "review all generated plan.md files together"
+  assert_contains "skills/doc-slice/SKILL.md" "Create guide.md only after plan review"
+  assert_contains "skills/doc-slice/SKILL.md" "high-risk slice"
+  assert_contains "skills/doc-slice/SKILL.md" "Infer verification commands"
+  assert_contains "skills/doc-slice/SKILL.md" "Spec review status: reviewed"
 
   assert_contains "skills/doc-sync/SKILL.md" "disable-model-invocation: true"
   assert_contains "skills/doc-sync/SKILL.md" "git rev-parse --git-common-dir"
@@ -341,7 +367,7 @@ test_git_hook_guard_clause_still_captures() {
   mkdir -p "$repo/.git/hooks"
   cat > "$repo/.git/hooks/post-commit" <<'HOOK'
 #!/usr/bin/env bash
-if [[ -n "${SKIP_AGENT_DOCS:-}" ]]; then
+if [[ -n "${SKIP_SEASONED_ARCHITECT:-}" ]]; then
   exit 0
 fi
 echo existing-hook > existing-hook-ran

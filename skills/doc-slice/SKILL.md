@@ -1,65 +1,52 @@
 ---
 name: doc-slice
-description: Create a new Seasoned Architect slice with plan.md and guide.md, then update DOCS_MAP.md and WORK_BREAKDOWN.md. Use only when the user explicitly asks to create or scaffold a slice.
-argument-hint: "<slice-name>"
+description: Use when confirmed Implementation Specs in docs/agent/WORK_BREAKDOWN.md need to be split into build-loop-ready slice plans and guides.
+argument-hint: "[optional MVP, part, or spec filter]"
 disable-model-invocation: true
 ---
 
 # Seasoned Architect Slice
 
-Create a new implementation slice.
+Turn confirmed Implementation Specs into implementation slices.
 
-## Required argument
+## Source
 
-`$ARGUMENTS` is the slice name. Use kebab-case for file paths.
+Read confirmed Implementation Specs from `docs/agent/WORK_BREAKDOWN.md`. Do not invent product goals, MVPs, Parts, architecture decisions, or missing specs.
 
-## Rules
+Only slice specs with `Spec review status: reviewed`. If a target spec is `not reviewed`, `needs user decision`, or missing review status, stop and ask the user to finish `/Seasoned-Architect:doc-breakdown` first.
 
-- `doc-slice` MUST update all four targets below.
-- If any target cannot be safely updated, stop and ask the user for the missing information.
-- Do not create a slice without updating `DOCS_MAP.md`.
-- Do not create a slice without updating `WORK_BREAKDOWN.md`.
-- Include a `Build-loop handoff` block in every `guide.md`.
+## Workflow
 
-## Required updates
+1. Generate slice plans first.
+2. Create `docs/agent/slices/<slice>/plan.md` for each slice before any guide.
+3. Ask a sub agent to review all generated plan.md files together for duplicate slices, missing slices, ordering issues, and oversized or undersized scope.
+4. Apply only validated findings. Ask the user before applying findings that change product intent.
+5. Create guide.md only after plan review.
+6. Create one `guide.md` per slice.
+7. `doc-slice` MUST update `DOCS_MAP.md` and `WORK_BREAKDOWN.md` with slice links.
 
-1. Create `docs/agent/slices/<slice>/plan.md` from `templates/slice-plan.md`.
-2. Create `docs/agent/slices/<slice>/guide.md` from `templates/slice-guide.md`.
-3. Update `docs/agent/DOCS_MAP.md` with the slice path and code path.
-4. Update `docs/agent/WORK_BREAKDOWN.md` with the MVP, part, spec, and slice link.
+## Slice size
 
-## Required questions when context is missing
+Use a slice size that build-loop-codex can implement and verify in one pass. Prefer one screen or one tightly related feature. Split large specs into multiple slices when acceptance checks would be unclear.
 
-Ask only for fields that cannot be inferred:
+## Plan requirements
 
-- Which MVP does this slice belong to?
-- Which part does this slice belong to?
-- Which implementation spec does this slice satisfy?
-- What code paths may the implementation touch?
-- Which files or areas must not be modified?
-- What verification commands should build-loop run?
+Each `plan.md` must include source MVP, Part, Implementation Spec, user scenario, scope, non-goals, screen/data/state, permissions/exceptions, and acceptance criteria.
 
-## Build-loop handoff requirements
+## Guide requirements
 
-The generated `guide.md` must contain:
+Each `guide.md` must include read-first docs, read-only-if-needed docs, scope, allowed files, do-not-modify files, implementation order, acceptance checks, verification commands, high-risk review status, and a Build-loop handoff block.
 
-- Seasoned Architect slice name
-- Read first docs
-- Read only if needed docs
-- Source of truth
-- Scope
-- Non-goals
-- Allowed files
-- Do not modify
-- Acceptance checks
-- Verification commands
+## Risk review
+
+Flag a high-risk slice when it touches auth/permissions, payment, data deletion, privacy/security, bulk data mutation, external API integration, or core architecture change.
+
+Review `guide.md` with a sub agent only for high-risk slice categories. Apply validated findings only.
+
+## Verification
+
+Infer verification commands from repo files such as `package.json`, `README.md`, `Makefile`, `pyproject.toml`, and existing docs. Ask the user when uncertain. Do not add generic commands that the repo does not support.
 
 ## Output format
 
-Report:
-
-- Slice path
-- Files created
-- `DOCS_MAP.md` entry added
-- `WORK_BREAKDOWN.md` entry added
-- Remaining fields needing user review
+Report slice paths, plan review status, findings applied, high-risk slices, guide review status when used, `DOCS_MAP.md` updates, `WORK_BREAKDOWN.md` updates, and next action `build-loop-codex`.

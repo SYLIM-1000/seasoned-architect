@@ -3,24 +3,18 @@ slice: {{SLICE_NAME}}
 status: planned
 mvp: {{MVP_NAME}}
 part: {{PART_NAME}}
-spec: {{SPEC_NAME}}
-code_paths:
-  - {{CODE_PATH}}
-frontend_components:
-  - {{FRONTEND_COMPONENT}}
-architecture_decisions:
-  - {{ARCHITECTURE_DECISION}}
+source_spec: {{SPEC_NAME}}
 ---
 
 # Slice Plan: {{SLICE_NAME}}
 
-## Why
+## Purpose
 
-{{WHY}}
+{{PURPOSE}}
 
-## What
+## User Scenario
 
-{{WHAT}}
+{{USER_SCENARIO}}
 
 ## Scope
 
@@ -30,9 +24,20 @@ architecture_decisions:
 
 - {{NON_GOAL}}
 
-## Success Criteria
+## Screen / Data / State
 
-- {{SUCCESS_CRITERION}}
+- Screen: {{SCREEN}}
+- Data: {{DATA}}
+- State: {{STATE}}
+
+## Permissions and Exceptions
+
+- Permissions: {{PERMISSIONS}}
+- Exception cases: {{EXCEPTION_CASES}}
+
+## Acceptance criteria
+
+- {{ACCEPTANCE_CRITERION}}
 
 ## Dependencies
 

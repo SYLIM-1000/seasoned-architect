@@ -75,7 +75,10 @@ assert_contains "skills/doc-breakdown/SKILL.md" "Do not brainstorm inside this s
 assert_contains "skills/doc-breakdown/SKILL.md" "sub agent"
 assert_contains "skills/doc-breakdown/SKILL.md" "Implementation Spec"
 assert_contains "skills/doc-breakdown/SKILL.md" "MVP checkpoints"
+assert_contains "skills/doc-breakdown/SKILL.md" "Spec review status: reviewed"
 assert_contains "skills/doc-init/SKILL.md" "/Seasoned-Architect:doc-breakdown"
+assert_contains "templates/WORK_BREAKDOWN.md" "MVP goal"
+assert_contains "templates/WORK_BREAKDOWN.md" "Part goal"
 assert_contains "templates/WORK_BREAKDOWN.md" "Spec review status"
 assert_contains "templates/WORK_BREAKDOWN.md" "Screen"
 assert_contains "templates/WORK_BREAKDOWN.md" "Permissions"
@@ -154,9 +157,11 @@ Change the final output guidance in `skills/doc-init/SKILL.md` from `/Seasoned-A
 
 - [ ] **Step 5: Update `WORK_BREAKDOWN.md` template**
 
-Add explicit fields under each Implementation Spec:
+Add MVP/Part goal fields and explicit fields under each Implementation Spec:
 
 ```markdown
+- MVP goal: {{MVP_GOAL}}
+- Part goal: {{PART_GOAL}}
 - Screen: {{SCREEN}}
 - Data: {{DATA}}
 - State: {{STATE}}
@@ -196,6 +201,7 @@ assert_contains "skills/doc-slice/SKILL.md" "review all generated plan.md files 
 assert_contains "skills/doc-slice/SKILL.md" "Create guide.md only after plan review"
 assert_contains "skills/doc-slice/SKILL.md" "high-risk slice"
 assert_contains "skills/doc-slice/SKILL.md" "Infer verification commands"
+assert_contains "skills/doc-slice/SKILL.md" "Spec review status: reviewed"
 ```
 
 Update `test_templates` so templates must contain:
@@ -330,10 +336,10 @@ Expected: validation succeeds. A kebab-case warning for `Seasoned-Architect` is 
 Run:
 
 ```bash
-rg -n "agent-docs|agent-dev-structure|agent-docs-structure" .
+rg -n "agent[-]docs|agent[-]docs[-]structure|agent[-]dev[-]structure" .
 ```
 
-Expected: no matches, except intentionally documented historical text if any exists. If a match appears in plugin functionality files, update it.
+Expected: no matches. Also search for old uppercase skip-variable leftovers and update them.
 
 - [ ] **Step 4: Prepare final sub agent review**
 
