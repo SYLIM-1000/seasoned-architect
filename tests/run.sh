@@ -135,7 +135,7 @@ HOOK
   block_count="$(grep -c '# agent-docs: begin' "$hook_path")"
   [[ "$block_count" = "1" ]] || fail "agent-docs hook block duplicated"
   ls "$hook_path".bak.* >/dev/null 2>&1 || fail "existing hook backup was not created"
-  original_hook="$(common_dir_abs "$repo")/agent-docs/hooks/original-post-commit.sh"
+  original_hook="$(dirname "$hook_path")/post-commit.agent-docs-original"
   [[ -x "$original_hook" ]] || fail "original hook copy was not created"
   grep -Fq "existing-hook" "$original_hook" || fail "original hook copy missing existing hook content"
 
@@ -199,6 +199,39 @@ HOOK
   pass "git hook guard clause"
 }
 
+test_git_hook_relative_helper_still_runs() {
+  local tmp repo raw_log
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.git/hooks/lib"
+  cat > "$repo/.git/hooks/lib/helper.sh" <<'HELPER'
+write_hook_side_effect() {
+  echo helper > helper-hook-ran
+}
+HELPER
+  cat > "$repo/.git/hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+hook_dir="$(cd "$(dirname "$0")" && pwd)"
+source "$hook_dir/lib/helper.sh"
+write_hook_side_effect
+HOOK
+  chmod +x "$repo/.git/hooks/post-commit"
+
+  (cd "$repo" && "$ROOT/scripts/install-git-hook.sh")
+  echo "relative helper" > "$repo/relative-helper.txt"
+  git -C "$repo" add relative-helper.txt
+  git -C "$repo" commit -q -m "capture with relative helper"
+
+  raw_log="$(common_dir_abs "$repo")/agent-docs/raw-log.jsonl"
+  [[ -f "$repo/helper-hook-ran" ]] || fail "existing hook relative helper did not run"
+  [[ -f "$raw_log" ]] || fail "raw log missing when existing hook uses relative helper"
+  grep -Fq '"message":"capture with relative helper"' "$raw_log" || fail "relative helper commit was not captured"
+
+  rm -rf "$tmp"
+  pass "git hook relative helper"
+}
+
 test_git_hook_dollar_path_capture() {
   local tmp repo raw_log
   tmp="$(mktemp -d)"
@@ -253,6 +286,7 @@ main() {
   test_git_hook_install_idempotent
   test_git_hook_existing_exit0_still_captures
   test_git_hook_guard_clause_still_captures
+  test_git_hook_relative_helper_still_runs
   test_git_hook_dollar_path_capture
   test_git_hook_worktree_common_log
 }

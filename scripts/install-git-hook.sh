@@ -15,7 +15,6 @@ esac
 
 agent_dir="$common_dir_abs/agent-docs"
 agent_bin="$agent_dir/bin"
-agent_hooks="$agent_dir/hooks"
 mkdir -p "$agent_bin"
 cp "$script_dir/post-commit-capture.sh" "$agent_bin/post-commit-capture.sh"
 chmod +x "$agent_bin/post-commit-capture.sh"
@@ -38,7 +37,9 @@ else
 fi
 
 capture_path="$agent_bin/post-commit-capture.sh"
-original_hook="$agent_hooks/original-post-commit.sh"
+hook_dir="$(dirname "$hook_path")"
+original_hook="$hook_dir/post-commit.agent-docs-original"
+legacy_original_hook="$agent_dir/hooks/original-post-commit.sh"
 capture_path_literal="$(printf '%q' "$capture_path")"
 original_hook_literal="$(printf '%q' "$original_hook")"
 
@@ -58,6 +59,11 @@ HOOK
 
 if [[ -f "$hook_path" ]]; then
   if grep -Fq "# agent-docs: wrapper" "$hook_path"; then
+    if [[ ! -e "$original_hook" && -f "$legacy_original_hook" ]]; then
+      cp "$legacy_original_hook" "$original_hook"
+      chmod +x "$original_hook"
+    fi
+    write_wrapper
     chmod +x "$hook_path"
     echo "agent-docs: post-commit hook already installed at $hook_path"
     exit 0
@@ -65,12 +71,7 @@ if [[ -f "$hook_path" ]]; then
 
   backup="$hook_path.bak.$(date +%Y%m%d%H%M%S)"
   cp "$hook_path" "$backup"
-  mkdir -p "$agent_hooks"
-  awk '
-    /^# agent-docs: begin$/ { skip = 1; next }
-    /^# agent-docs: end$/ { skip = 0; next }
-    !skip { print }
-  ' "$hook_path" > "$original_hook"
+  cp "$hook_path" "$original_hook"
   chmod +x "$original_hook"
 fi
 
