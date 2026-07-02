@@ -13,7 +13,7 @@ Turn confirmed Implementation Specs into implementation slices.
 
 Read confirmed Implementation Specs from `docs/agent/WORK_BREAKDOWN.md`. Do not invent product goals, MVPs, Parts, architecture decisions, or missing specs.
 
-Only slice specs with `Spec review status: reviewed`. If a target spec is `not reviewed`, `needs user decision`, or missing review status, stop and ask the user to finish `/Seasoned-Architect:doc-breakdown` first.
+Only slice specs with `Spec review status: reviewed`. If a target spec is `not reviewed`, `needs user decision`, or missing review status, stop and ask the user to finish `/seasoned-architect:doc-breakdown` first.
 
 ## Workflow
 

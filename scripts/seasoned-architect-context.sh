@@ -14,7 +14,7 @@ case "$common_dir" in
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
 
-raw_log="$common_dir_abs/Seasoned-Architect/raw-log.jsonl"
+raw_log="$common_dir_abs/seasoned-architect/raw-log.jsonl"
 journal_dir="$repo_root/docs/agent/journal"
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -86,7 +86,7 @@ if mode != "subagent":
     journal_text = read_journal_text(journal_dir)
     unsynced = [commit for commit in commits if commit not in journal_text]
     if unsynced:
-        context += f"\n\nSeasoned Architect: 미반영 커밋 {len(unsynced)}개 있음. `/Seasoned-Architect:doc-sync` 실행 권장."
+        context += f"\n\nSeasoned Architect: 미반영 커밋 {len(unsynced)}개 있음. `/seasoned-architect:doc-sync` 실행 권장."
 
 print(json.dumps({
     "hookSpecificOutput": {

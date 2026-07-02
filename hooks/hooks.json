@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/Seasoned-Architect-context.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/seasoned-architect-context.sh",
             "args": ["session"],
             "timeout": 5
           }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/Seasoned-Architect-context.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/seasoned-architect-context.sh",
             "args": ["subagent"],
             "timeout": 5
           }

@@ -45,7 +45,7 @@ Apply clear omissions or contradictions. Ask the user before applying findings t
 
 After the review is handled, update each affected Implementation Spec review field in `WORK_BREAKDOWN.md`: use `Spec review status: reviewed` when findings are resolved, or `Spec review status: needs user decision` when product-intent decisions remain open.
 
-After applying review findings, present the final docs to the user for confirmation. Do not hand off to /Seasoned-Architect:doc-slice until the user confirms the final Implementation Specs.
+After applying review findings, present the final docs to the user for confirmation. Do not hand off to /seasoned-architect:doc-slice until the user confirms the final Implementation Specs.
 
 ## Existing docs
 
@@ -53,4 +53,4 @@ Preserve existing docs. Update blank or stale areas. If new planning conflicts w
 
 ## Output format
 
-Report files updated, MVPs confirmed, Parts confirmed, Implementation Specs written, sub agent review status, findings applied, findings requiring user decision, and next action `/Seasoned-Architect:doc-slice`.
+Report files updated, MVPs confirmed, Parts confirmed, Implementation Specs written, sub agent review status, findings applied, findings requiring user decision, and next action `/seasoned-architect:doc-slice`.

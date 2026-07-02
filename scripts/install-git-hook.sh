@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
-  echo "Seasoned-Architect: not inside a git repository" >&2
+  echo "seasoned-architect: not inside a git repository" >&2
   exit 1
 }
 
@@ -13,7 +13,7 @@ case "$common_dir" in
   *) common_dir_abs="$repo_root/$common_dir" ;;
 esac
 
-agent_dir="$common_dir_abs/Seasoned-Architect"
+agent_dir="$common_dir_abs/seasoned-architect"
 hooks_path="$(git -C "$repo_root" config --get core.hooksPath || true)"
 if [[ -n "$hooks_path" ]]; then
   case "$hooks_path" in
@@ -32,7 +32,7 @@ else
 fi
 
 if [[ -L "$hook_path" ]]; then
-  echo "Seasoned-Architect: post-commit hook is a symlink; refusing automatic install. Add the capture command to your hook manager manually." >&2
+  echo "seasoned-architect: post-commit hook is a symlink; refusing automatic install. Add the capture command to your hook manager manually." >&2
   exit 1
 fi
 
@@ -43,7 +43,9 @@ chmod +x "$agent_bin/post-commit-capture.sh"
 
 capture_path="$agent_bin/post-commit-capture.sh"
 hook_dir="$(dirname "$hook_path")"
-original_hook="$hook_dir/post-commit.Seasoned-Architect-original"
+original_hook="$hook_dir/post-commit.seasoned-architect-original"
+legacy_plugin_name="Seasoned""-Architect"
+legacy_named_original_hook="$hook_dir/post-commit.${legacy_plugin_name}-original"
 legacy_original_hook="$agent_dir/hooks/original-post-commit.sh"
 capture_path_literal="$(printf '%q' "$capture_path")"
 original_hook_literal="$(printf '%q' "$original_hook")"
@@ -52,8 +54,8 @@ write_wrapper() {
   local chain_original="${1:-0}"
   cat > "$hook_path" <<HOOK
 #!/usr/bin/env bash
-# Seasoned-Architect: begin
-# Seasoned-Architect: wrapper
+# seasoned-architect: begin
+# seasoned-architect: wrapper
 $capture_path_literal || true
 HOOK
   if [[ "$chain_original" = "1" ]]; then
@@ -64,15 +66,18 @@ fi
 HOOK
   fi
   cat >> "$hook_path" <<'HOOK'
-# Seasoned-Architect: end
+# seasoned-architect: end
 exit 0
 HOOK
 }
 
 chain_original=0
 if [[ -f "$hook_path" ]]; then
-  if grep -Fq "# Seasoned-Architect: wrapper" "$hook_path"; then
-    if [[ ! -e "$original_hook" && -f "$legacy_original_hook" ]]; then
+  if grep -Fq "# seasoned-architect: wrapper" "$hook_path" || grep -Fq "# ${legacy_plugin_name}: wrapper" "$hook_path"; then
+    if [[ ! -e "$original_hook" && -f "$legacy_named_original_hook" ]]; then
+      cp "$legacy_named_original_hook" "$original_hook"
+      chmod +x "$original_hook"
+    elif [[ ! -e "$original_hook" && -f "$legacy_original_hook" ]]; then
       cp "$legacy_original_hook" "$original_hook"
       chmod +x "$original_hook"
     fi
@@ -81,7 +86,7 @@ if [[ -f "$hook_path" ]]; then
     fi
     write_wrapper "$chain_original"
     chmod +x "$hook_path"
-    echo "Seasoned-Architect: post-commit hook already installed at $hook_path"
+    echo "seasoned-architect: post-commit hook already installed at $hook_path"
     exit 0
   fi
 
@@ -93,10 +98,10 @@ if [[ -f "$hook_path" ]]; then
     chain_original=1
   else
     rm -f "$original_hook"
-    echo "Seasoned-Architect: existing post-commit is not executable; preserving but not chaining it" >&2
+    echo "seasoned-architect: existing post-commit is not executable; preserving but not chaining it" >&2
   fi
 fi
 
 write_wrapper "$chain_original"
 chmod +x "$hook_path"
-echo "Seasoned-Architect: installed post-commit hook at $hook_path"
+echo "seasoned-architect: installed post-commit hook at $hook_path"

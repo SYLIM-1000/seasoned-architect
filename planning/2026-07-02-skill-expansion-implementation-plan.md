@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `/Seasoned-Architect:doc-breakdown` and expand `/Seasoned-Architect:doc-slice` so Seasoned Architect supports the confirmed planning-to-build workflow.
+**Goal:** Add `/seasoned-architect:doc-breakdown` and expand `/seasoned-architect:doc-slice` so Seasoned Architect supports the confirmed planning-to-build workflow.
 
 **Architecture:** Keep the plugin lightweight. Implement behavior through concise `SKILL.md` instructions and template/test updates only. Do not add runtime scripts unless a deterministic operation cannot be expressed safely in skill instructions.
 
@@ -12,15 +12,15 @@
 
 ## Source Decisions
 
-Use `/Users/seungyong/Desktop/project/Skill&Plugin/Seasoned-Architect/planning/Seasoned-Architect-skill-expansion-plan.md` as the source of truth.
+Use `/Users/seungyong/Desktop/project/Skill&Plugin/seasoned-architect/planning/seasoned-architect-skill-expansion-plan.md` as the source of truth.
 
 Confirmed flow:
 
 ```txt
 brainstorming / grill-me / visual planning
-→ /Seasoned-Architect:doc-breakdown
+→ /seasoned-architect:doc-breakdown
 → sub agent spec review
-→ /Seasoned-Architect:doc-slice
+→ /seasoned-architect:doc-slice
 → sub agent plan.md review
 → build-loop-codex
 ```
@@ -32,7 +32,7 @@ brainstorming / grill-me / visual planning
 - Modify `skills/doc-slice/SKILL.md`
   - Expand from manual slice scaffolding into spec-driven automatic slicing.
 - Modify `skills/doc-init/SKILL.md`
-  - Change next recommended action to `/Seasoned-Architect:doc-breakdown`.
+  - Change next recommended action to `/seasoned-architect:doc-breakdown`.
 - Modify `templates/WORK_BREAKDOWN.md`
   - Add fields needed by doc-breakdown: MVP goal, Part goal, Implementation Spec detail, review status, slice links.
 - Modify `templates/slice-plan.md`
@@ -76,7 +76,7 @@ assert_contains "skills/doc-breakdown/SKILL.md" "sub agent"
 assert_contains "skills/doc-breakdown/SKILL.md" "Implementation Spec"
 assert_contains "skills/doc-breakdown/SKILL.md" "MVP checkpoints"
 assert_contains "skills/doc-breakdown/SKILL.md" "Spec review status: reviewed"
-assert_contains "skills/doc-init/SKILL.md" "/Seasoned-Architect:doc-breakdown"
+assert_contains "skills/doc-init/SKILL.md" "/seasoned-architect:doc-breakdown"
 assert_contains "templates/WORK_BREAKDOWN.md" "MVP goal"
 assert_contains "templates/WORK_BREAKDOWN.md" "Part goal"
 assert_contains "templates/WORK_BREAKDOWN.md" "Spec review status"
@@ -148,12 +148,12 @@ Preserve existing docs. Update blank or stale areas. If new planning conflicts w
 
 ## Output format
 
-Report files updated, MVPs confirmed, Parts confirmed, Implementation Specs written, sub agent review status, findings applied, findings requiring user decision, and next action `/Seasoned-Architect:doc-slice`.
+Report files updated, MVPs confirmed, Parts confirmed, Implementation Specs written, sub agent review status, findings applied, findings requiring user decision, and next action `/seasoned-architect:doc-slice`.
 ```
 
 - [ ] **Step 4: Update `doc-init` next action**
 
-Change the final output guidance in `skills/doc-init/SKILL.md` from `/Seasoned-Architect:doc-slice <slice-name>` to `/Seasoned-Architect:doc-breakdown`.
+Change the final output guidance in `skills/doc-init/SKILL.md` from `/seasoned-architect:doc-slice <slice-name>` to `/seasoned-architect:doc-breakdown`.
 
 - [ ] **Step 5: Update `WORK_BREAKDOWN.md` template**
 
@@ -329,7 +329,7 @@ Run:
 claude plugin validate .
 ```
 
-Expected: validation succeeds. A kebab-case warning for `Seasoned-Architect` is acceptable because the user chose that name.
+Expected: validation succeeds. A kebab-case warning for `seasoned-architect` is acceptable because the user chose that name.
 
 - [ ] **Step 3: Search for old names**
 

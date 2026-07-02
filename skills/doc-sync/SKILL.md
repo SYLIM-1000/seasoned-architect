@@ -20,10 +20,10 @@ git rev-parse --git-common-dir
 Then read:
 
 ```txt
-<git-common-dir>/Seasoned-Architect/raw-log.jsonl
+<git-common-dir>/seasoned-architect/raw-log.jsonl
 ```
 
-Do not use `git rev-parse --git-path Seasoned-Architect/raw-log.jsonl` for raw logs.
+Do not use `git rev-parse --git-path seasoned-architect/raw-log.jsonl` for raw logs.
 
 ## Sync detection
 
