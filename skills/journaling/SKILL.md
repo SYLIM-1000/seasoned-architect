@@ -12,10 +12,14 @@ Use these rules when writing `docs/agent/journal/YYYY-MM.md` entries.
 
 Do not invent intent. If the reason for a change is not supported by slice docs, commit message, or diff, write `확인 필요`.
 
+## Commit hash rule
+
+Write the full 40-character commit hash in the entry heading. Never shorten it: sync detection matches journal text against raw-log hashes, and short hashes break that match.
+
 ## Required entry shape
 
 ```markdown
-## <timestamp> · [slice: <slice>] · commit <hash>
+## <timestamp> · [slice: <slice>] · commit <full 40-character hash>
 
 - **무엇(What)**: <what changed>
 - **왜(Why)**: <evidence-backed reason or 확인 필요>
@@ -28,6 +32,11 @@ Do not invent intent. If the reason for a change is not supported by slice docs,
 - **Confidence**: `raw` | `ai-enriched` | `user-confirmed`
 - **Evidence source**: `slice-plan`, `slice-guide`, `commit-message`, `diff`, `user-confirmed`
 ```
+
+## Source values
+
+- `git-hook`: the commit came from the raw log written by the post-commit hook.
+- `git-log`: the commit was recovered by the doc-sync missed-commit fallback (merge commits, rebased commits, commits made without the hook).
 
 ## Evidence source rules
 

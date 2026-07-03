@@ -22,11 +22,11 @@ Only slice specs with `Spec review status: reviewed`. If a target spec is `not r
 4. Apply only validated findings. Ask the user before applying findings that change product intent.
 5. Create guide.md only after plan review.
 6. Create one `guide.md` per slice.
-7. `doc-slice` MUST update `DOCS_MAP.md` and `WORK_BREAKDOWN.md` with slice links.
+7. `doc-slice` MUST update `DOCS_MAP.md` and `WORK_BREAKDOWN.md` with slice links. In the DOCS_MAP Slice Map, fill `코드 경로` with the best-known path, or `TBD` when unknown; `doc-sync` fills `TBD` entries later from actual commits.
 
 ## Slice size
 
-Use a slice size that build-loop-codex can implement and verify in one pass. Prefer one screen or one tightly related feature. Split large specs into multiple slices when acceptance checks would be unclear.
+Use a slice size that the user's build-loop skill can implement and verify in one pass. Prefer one screen or one tightly related feature. Split large specs into multiple slices when acceptance checks would be unclear.
 
 ## Plan requirements
 
@@ -48,4 +48,4 @@ Infer verification commands from repo files such as `package.json`, `README.md`,
 
 ## Output format
 
-Report slice paths, plan review status, findings applied, high-risk slices, guide review status when used, `DOCS_MAP.md` updates, `WORK_BREAKDOWN.md` updates, and next action `build-loop-codex`.
+Report slice paths, plan review status, findings applied, high-risk slices, guide review status when used, `DOCS_MAP.md` updates, `WORK_BREAKDOWN.md` updates, and next action: hand each slice's `guide.md` to the user's build-loop skill (for example `build-loop`).

@@ -84,7 +84,8 @@ context = base_subagent if mode == "subagent" else base_session
 if mode != "subagent":
     commits = read_commits_from_raw_log(raw_log)
     journal_text = read_journal_text(journal_dir)
-    unsynced = [commit for commit in commits if commit not in journal_text]
+    # Prefix match (7 chars) tolerates journal entries written with short hashes.
+    unsynced = [commit for commit in commits if commit[:7] not in journal_text]
     if unsynced:
         context += f"\n\nSeasoned Architect: 미반영 커밋 {len(unsynced)}개 있음. `/seasoned-architect:doc-sync` 실행 권장."
 

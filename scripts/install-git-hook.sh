@@ -50,6 +50,28 @@ legacy_original_hook="$agent_dir/hooks/original-post-commit.sh"
 capture_path_literal="$(printf '%q' "$capture_path")"
 original_hook_literal="$(printf '%q' "$original_hook")"
 
+# A hook file inside the working tree (core.hooksPath like .husky) may be a
+# shared, committed file; rewriting it would dirty or break the team's setup.
+hook_rel=""
+case "$hook_path" in
+  "$common_dir_abs"/*) ;;
+  "$repo_root"/*) hook_rel="${hook_path#"$repo_root"/}" ;;
+esac
+
+if [[ -n "$hook_rel" ]]; then
+  if [[ -f "$hook_path" ]] && git -C "$repo_root" ls-files --error-unmatch "$hook_rel" >/dev/null 2>&1; then
+    if grep -Fq "# seasoned-architect: wrapper" "$hook_path"; then
+      echo "seasoned-architect: post-commit hook already installed at $hook_path (tracked file left unchanged)"
+      exit 0
+    fi
+    echo "seasoned-architect: $hook_rel is tracked by git (shared hook manager such as husky); refusing automatic install." >&2
+    echo "seasoned-architect: add this line to that hook manually:" >&2
+    echo "  $capture_path_literal || true" >&2
+    exit 1
+  fi
+  echo "seasoned-architect: post-commit hook at $hook_rel is inside the repository working tree; avoid committing it." >&2
+fi
+
 write_wrapper() {
   local chain_original="${1:-0}"
   cat > "$hook_path" <<HOOK

@@ -183,6 +183,7 @@ test_templates() {
   assert_contains "templates/slice-guide.md" "Read only if needed"
   assert_contains "templates/journal-entry.md" "**Verification**"
   assert_contains "templates/journal-entry.md" "**Evidence source**"
+  assert_contains "templates/journal-entry.md" "{{FULL_COMMIT_HASH}}"
   pass "templates"
 }
 
@@ -206,6 +207,10 @@ test_skills() {
   assert_contains "skills/doc-init/SKILL.md" "WORK_BREAKDOWN.md"
   assert_contains "skills/doc-init/SKILL.md" "frontend-components.md"
   assert_contains "skills/doc-init/SKILL.md" "/seasoned-architect:doc-breakdown"
+  assert_contains "skills/doc-init/SKILL.md" "two directories above"
+  assert_contains "skills/doc-init/SKILL.md" "journal/.gitkeep"
+  assert_contains "skills/doc-init/SKILL.md" "AGENTS.md"
+  ! grep -Fq "v0.1 document set" "$ROOT/skills/doc-init/SKILL.md" || fail "doc-init still references v0.1 document set"
 
   assert_contains "skills/doc-slice/SKILL.md" "MUST update"
   assert_contains "skills/doc-slice/SKILL.md" "DOCS_MAP.md"
@@ -216,14 +221,22 @@ test_skills() {
   assert_contains "skills/doc-slice/SKILL.md" "high-risk slice"
   assert_contains "skills/doc-slice/SKILL.md" "Infer verification commands"
   assert_contains "skills/doc-slice/SKILL.md" "Spec review status: reviewed"
+  assert_contains "skills/doc-slice/SKILL.md" "build-loop skill"
+  ! grep -Fq "build-loop-codex" "$ROOT/skills/doc-slice/SKILL.md" || fail "doc-slice must not hardcode build-loop-codex"
 
   assert_contains "skills/doc-sync/SKILL.md" "git rev-parse --git-common-dir"
   assert_contains "skills/doc-sync/SKILL.md" "Evidence priority"
   assert_contains "skills/doc-sync/SKILL.md" "Verification"
+  assert_contains "skills/doc-sync/SKILL.md" "first 7"
+  assert_contains "skills/doc-sync/SKILL.md" "Unreachable commits"
+  assert_contains "skills/doc-sync/SKILL.md" "Superseded commits"
+  assert_contains "skills/doc-sync/SKILL.md" "Missed commits"
+  assert_contains "skills/doc-sync/SKILL.md" "git-log"
 
   assert_contains "skills/journaling/SKILL.md" "user-invocable: false"
   assert_contains "skills/journaling/SKILL.md" "Do not invent intent"
   assert_contains "skills/journaling/SKILL.md" "Evidence source"
+  assert_contains "skills/journaling/SKILL.md" "full 40-character commit hash"
   pass "skills"
 }
 
@@ -628,6 +641,82 @@ test_context_script_session_and_subagent() {
   pass "context script"
 }
 
+test_context_script_short_hash_synced() {
+  local tmp repo raw_log full_hash
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/docs/agent/journal"
+  cp "$ROOT/templates/DOCS_MAP.md" "$repo/docs/agent/DOCS_MAP.md"
+
+  full_hash="9259b90748d0ea266432440e208a802322250ce3"
+  raw_log="$(common_dir_abs "$repo")/seasoned-architect/raw-log.jsonl"
+  mkdir -p "$(dirname "$raw_log")"
+  printf '{"commit":"%s","timestamp":"2026-07-03T10:00:00+09:00","author":"Agent","message":"short hash","changed_files":["a.txt"],"source":"git-hook"}\n' "$full_hash" > "$raw_log"
+
+  printf '## 2026-07-03 · [slice: x] · commit %s\n' "${full_hash:0:7}" > "$repo/docs/agent/journal/2026-07.md"
+  (cd "$repo" && "$ROOT/scripts/seasoned-architect-context.sh" session > "$tmp/short.out")
+  grep -Fq '미반영 커밋' "$tmp/short.out" && fail "short-hash journal entry must count as synced"
+
+  printf '## 2026-07-03 · [slice: x] · commit unrelated\n' > "$repo/docs/agent/journal/2026-07.md"
+  (cd "$repo" && "$ROOT/scripts/seasoned-architect-context.sh" session > "$tmp/unsynced.out")
+  grep -Fq '미반영 커밋 1개 있음' "$tmp/unsynced.out" || fail "genuinely unsynced commit must still be nudged"
+
+  rm -rf "$tmp"
+  pass "context script short hash synced"
+}
+
+test_git_hook_tracked_hook_refuses_install() {
+  local tmp repo hook_path output status
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  mkdir -p "$repo/.husky"
+  hook_path="$repo/.husky/post-commit"
+  cat > "$hook_path" <<'HOOK'
+#!/usr/bin/env bash
+echo husky-hook >/dev/null
+HOOK
+  chmod +x "$hook_path"
+  git -C "$repo" add .husky/post-commit
+  git -C "$repo" commit -qm "add husky hook"
+  git -C "$repo" config core.hooksPath .husky
+
+  set +e
+  output="$(cd "$repo" && "$ROOT/scripts/install-git-hook.sh" 2>&1)"
+  status="$?"
+  set -e
+
+  [[ "$status" != "0" ]] || fail "tracked hook install should fail"
+  grep -Fq "tracked by git" <<<"$output" || fail "tracked hook refusal message missing"
+  grep -Fq "post-commit-capture.sh" <<<"$output" || fail "tracked hook refusal must include manual capture command"
+  grep -Fq "husky-hook" "$hook_path" || fail "tracked hook content changed"
+  ! grep -Fq "seasoned-architect" "$hook_path" || fail "tracked hook was rewritten"
+
+  rm -rf "$tmp"
+  pass "git hook tracked hook refusal"
+}
+
+test_git_hook_untracked_worktree_hook_warns() {
+  local tmp repo output
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  make_git_repo "$repo"
+  git -C "$repo" config core.hooksPath .githooks
+
+  output="$(cd "$repo" && "$ROOT/scripts/install-git-hook.sh" 2>&1)"
+  grep -Fq "inside the repository working tree" <<<"$output" || fail "in-worktree hook warning missing"
+  [[ -x "$repo/.githooks/post-commit" ]] || fail "in-worktree hook was not installed"
+
+  echo "warned" > "$repo/warned.txt"
+  git -C "$repo" add warned.txt
+  git -C "$repo" commit -qm "capture with in-worktree hook"
+  [[ -f "$(common_dir_abs "$repo")/seasoned-architect/raw-log.jsonl" ]] || fail "raw log missing for in-worktree hook"
+
+  rm -rf "$tmp"
+  pass "git hook untracked worktree warning"
+}
+
 test_hooks_json() {
   assert_json_valid "hooks/hooks.json"
   assert_contains "hooks/hooks.json" "SessionStart"
@@ -657,7 +746,10 @@ main() {
   test_git_hook_relative_helper_still_runs
   test_git_hook_dollar_path_capture
   test_git_hook_worktree_common_log
+  test_git_hook_tracked_hook_refuses_install
+  test_git_hook_untracked_worktree_hook_warns
   test_context_script_session_and_subagent
+  test_context_script_short_hash_synced
   test_hooks_json
 }
 

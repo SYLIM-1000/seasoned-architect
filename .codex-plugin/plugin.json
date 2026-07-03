@@ -1,6 +1,6 @@
 {
   "name": "seasoned-architect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keeps AI agents oriented in long-running product development through planning docs, slice handoffs, commit logs, and lazy context loading.",
   "author": {
     "name": "임승용"
