@@ -71,9 +71,11 @@ test_plugin_structure() {
   assert_file "scripts/install-git-hook.sh"
   assert_file "scripts/post-commit-capture.sh"
   assert_file "scripts/seasoned-architect-context.sh"
+  assert_file "scripts/sync-version.sh"
   assert_executable "scripts/install-git-hook.sh"
   assert_executable "scripts/post-commit-capture.sh"
   assert_executable "scripts/seasoned-architect-context.sh"
+  assert_executable "scripts/sync-version.sh"
   assert_json_valid ".claude-plugin/plugin.json"
   assert_json_valid ".codex-plugin/plugin.json"
   assert_json_valid ".agents/plugins/marketplace.json"
@@ -81,15 +83,16 @@ test_plugin_structure() {
 }
 
 test_codex_plugin_manifest() {
-  python3 - "$ROOT/.codex-plugin/plugin.json" <<'PY'
+  python3 - "$ROOT/.codex-plugin/plugin.json" "$ROOT/.claude-plugin/plugin.json" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
+canonical = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 manifest = json.loads(path.read_text(encoding="utf-8"))
 assert manifest["name"] == "seasoned-architect"
-assert manifest["version"] == "0.1.0"
+assert manifest["version"] == canonical["version"]
 assert manifest["skills"] == "./skills/"
 assert "hooks" not in manifest
 interface = manifest["interface"]
@@ -120,6 +123,42 @@ assert plugin["policy"] == {"installation": "AVAILABLE", "authentication": "ON_I
 assert plugin["category"] == "Developer Tools"
 PY
   pass "codex marketplace manifest"
+}
+
+test_version_single_source() {
+  python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+
+canonical = json.loads((root / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
+version = canonical.get("version")
+assert version, "canonical version missing in .claude-plugin/plugin.json"
+
+codex = json.loads((root / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+assert codex.get("version") == version, (
+    f"codex version {codex.get('version')!r} != canonical {version!r}; "
+    "run scripts/sync-version.sh"
+)
+
+
+def assert_no_pinned_version(path):
+    if not path.exists():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    for plugin in data.get("plugins", []):
+        assert "version" not in plugin, (
+            f"{path} plugin entry must not pin version; "
+            "it inherits from .claude-plugin/plugin.json"
+        )
+
+
+assert_no_pinned_version(root / ".claude-plugin/marketplace.json")
+assert_no_pinned_version(root.parent / ".claude-plugin/marketplace.json")
+PY
+  pass "version single source"
 }
 
 test_templates() {
@@ -601,6 +640,7 @@ main() {
   test_plugin_structure
   test_codex_plugin_manifest
   test_codex_marketplace_manifest
+  test_version_single_source
   test_templates
   test_skill_frontmatter_codex_compatible
   test_skills

@@ -2,7 +2,7 @@
 
 Seasoned Architect는 긴 AI 보조 개발 작업에서 기획 문서, MVP 분해, 구현 slice, sub agent 전달 문서, 커밋 기반 작업 기록을 한 흐름으로 관리하기 위한 Codex / Claude Code 겸용 플러그인입니다.
 
-현재 버전은 `0.1.0`입니다.
+버전은 `.claude-plugin/plugin.json`에서 관리됩니다.
 
 ## 핵심 목적
 
